@@ -7,6 +7,7 @@ from pydub import AudioSegment
 import math
 from tqdm import tqdm
 import os
+from dotenv import load_dotenv
 import streamlit as st
 import openai
 import io
@@ -15,7 +16,10 @@ import io
 st.title('會議摘要自動生成器')
 # %%
 #parameter settings
-openai.api_key = "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"
+
+load_dotenv()
+
+openai.api_key = os.getenv("api_key")
 
 # %%
 def split_audio_by_minute(audio):
@@ -45,7 +49,7 @@ def get_completion(prompt, model="gpt-3.5-turbo",temperature=0): # Andrew mentio
     )
     return response.choices[0].message["content"]
 
-def wrap_text(text, max_width = 30):
+def wrap_text(text, max_width = 35):
     words = text.split()
     lines = []
     current_line = ""
@@ -65,7 +69,7 @@ def wrap_text(text, max_width = 30):
 
 # 創建一個側邊攔的選單
 options = ['逐字稿','音檔']
-choice = st.sidebar.selectbox('選擇檔案類型', options)
+choice = st.selectbox('選擇檔案類型', options)
 
 # 首頁
 if choice == '音檔':
@@ -98,10 +102,10 @@ if choice == '音檔':
             transcript = openai.Audio.transcribe("whisper-1", audio_file)
             transcript_all = transcript_all + transcript.text
         st.empty()
-        col1, col2 = st.columns([1, 2])
-        with col1:
-            st.header("逐字稿內容")
-            st.text(wrap_text(transcript_all).replace('\n', '  \n'))
+        # col1, col2 = st.columns([1, 2])
+        # with col1:
+        st.sidebar.header("逐字稿內容")
+        st.sidebar.text(wrap_text(transcript_all).replace('\n', '  \n'))
         
         start_idx = 200
         result = ''
@@ -133,18 +137,18 @@ if choice == '音檔':
         resonse_final = get_completion(prompt)
         stringio = io.StringIO(resonse_final)
         data = pd.read_csv(stringio, sep = ',')
-        with col2:
-            st.header("會議摘要")
-            st.dataframe(data)
+        # with col2:
+        st.header("會議摘要")
+        st.dataframe(data)
 elif choice == '逐字稿':
     uploaded_file = st.file_uploader(f"選擇一個{choice}檔案", type=['txt'])
     if st.button("Run meeting"):
         transcript_all = uploaded_file.read().decode("utf-8")
         st.empty()
-        col1, col2 = st.columns([1, 2])
-        with col1:
-            st.header("逐字稿內容")
-            st.text(wrap_text(transcript_all).replace('\n', '  \n'))
+        # col1, col2 = st.columns([1, 2])
+        # with col1:
+        st.sidebar.header("逐字稿內容")
+        st.sidebar.text(wrap_text(transcript_all).replace('\n', '  \n'))
         start_idx = 200
         result = ''
         overlap_token = 200 
@@ -174,9 +178,9 @@ elif choice == '逐字稿':
         resonse_final = get_completion(prompt)
         stringio = io.StringIO(resonse_final)
         data = pd.read_csv(stringio, sep = ',')
-        with col2:
-            st.header("會議摘要")
-            st.dataframe(data)
+        # with col2:
+        st.header("會議摘要")
+        st.dataframe(data)
 
 # %%
 
