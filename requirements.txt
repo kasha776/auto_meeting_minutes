@@ -5,3 +5,5 @@ pydub==0.25.1
 python-dotenv==1.0.0
 streamlit==1.22.0
 tqdm==4.64.1
+ffprobe==0.5
+ffmpeg-python==0.2.0
