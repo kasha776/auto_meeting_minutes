@@ -153,7 +153,7 @@ if choice == '音檔':
 
         resonse_final = get_completion(prompt)
         stringio = io.StringIO(resonse_final)
-        data = pd.read_csv(stringio, sep = ',', index = False)
+        data = pd.read_csv(stringio, sep = ',')
         output = convert_df(data)
         # with col2:
         st.header("會議摘要")
@@ -203,7 +203,7 @@ elif choice == '逐字稿':
 
         resonse_final = get_completion(prompt)
         stringio = io.StringIO(resonse_final)
-        data = pd.read_csv(stringio, sep = ',', index = False)
+        data = pd.read_csv(stringio, sep = ',')
         output = convert_df(data)
         # with col2:
         st.header("會議摘要")
