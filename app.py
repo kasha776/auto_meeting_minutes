@@ -11,6 +11,8 @@ from dotenv import load_dotenv
 import streamlit as st
 import openai
 import io
+import glob
+
 
 # 創建主頁面
 st.title('會議摘要自動生成器')
@@ -65,6 +67,10 @@ def wrap_text(text, max_width = 35):
     lines.append(current_line.strip())
     
     return "\n".join(lines)
+
+def convert_df(df):
+    # IMPORTANT: Cache the conversion to prevent computation on every rerun
+    return df.to_csv().encode('utf-8')
 # %%
 
 # 創建一個側邊攔的選單
@@ -105,7 +111,6 @@ if choice == '音檔':
             transcript_all = transcript_all + transcript.text
             progress_value = (i+1)/file_count
             progress_bar.progress(progress_value)
-        st.empty()
         # col1, col2 = st.columns([1, 2])
         # with col1:
         st.sidebar.header("逐字稿內容")
@@ -148,15 +153,16 @@ if choice == '音檔':
 
         resonse_final = get_completion(prompt)
         stringio = io.StringIO(resonse_final)
-        data = pd.read_csv(stringio, sep = ',')
+        data = pd.read_csv(stringio, sep = ',', index = False)
+        output = convert_df(data)
         # with col2:
         st.header("會議摘要")
+        st.download_button(label="Download data as CSV", data=output, file_name="meeting_minutes.csv", mime="text/csv")
         st.dataframe(data)
 elif choice == '逐字稿':
     uploaded_file = st.file_uploader(f"選擇一個{choice}檔案", type=['txt'])
     if st.button("Run meeting"):
         transcript_all = uploaded_file.read().decode("utf-8")
-        st.empty()
         # col1, col2 = st.columns([1, 2])
         # with col1:
         st.sidebar.header("逐字稿內容")
@@ -197,10 +203,16 @@ elif choice == '逐字稿':
 
         resonse_final = get_completion(prompt)
         stringio = io.StringIO(resonse_final)
-        data = pd.read_csv(stringio, sep = ',')
+        data = pd.read_csv(stringio, sep = ',', index = False)
+        output = convert_df(data)
         # with col2:
         st.header("會議摘要")
+        st.download_button(label="Download data as CSV", data=output, file_name="meeting_minutes.csv", mime="text/csv")
         st.dataframe(data)
+
+files = glob.glob('temp_audio/*')
+for f in files:
+    os.remove(f)
 
 # %%
 
