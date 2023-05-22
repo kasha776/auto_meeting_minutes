@@ -95,25 +95,33 @@ if choice == '音檔':
 
         file_list = os.listdir(folder_path)
         file_count = len(file_list) -1
+
+        progress_bar = st.progress(0)
         for i in tqdm(range(file_count)):
             # 在這裡對音訊片段做進一步的處理
             # 例如，可以對每個片段進行特定的音訊處理或分析
             audio_file = open('temp_audio/mp3_segment_{}.mp3'.format(i), "rb")
             transcript = openai.Audio.transcribe("whisper-1", audio_file)
             transcript_all = transcript_all + transcript.text
+            progress_value = (i+1)/file_count
+            progress_bar.progress(progress_value)
         st.empty()
         # col1, col2 = st.columns([1, 2])
         # with col1:
         st.sidebar.header("逐字稿內容")
         st.sidebar.text(wrap_text(transcript_all).replace('\n', '  \n'))
-        
+
         start_idx = 200
-        result = ''
+        result = '' 
         overlap_token = 200 
 
-        while start_idx < len(transcript_all):
+        # create a progress bar
+        progress_bar = st.progress(0)
+
+        total_length = len(transcript_all)
+        while start_idx < total_length:
             start_idx = start_idx - overlap_token
-            end_idx = min(start_idx + 2500, len(transcript_all))
+            end_idx = min(start_idx + 2500, total_length)
             sub_list = transcript_all[start_idx:end_idx]
             prompt = f"你現在是一個會議紀錄專業寫手，\
             你的任務是根據會議逐字稿整理會議紀錄，\
@@ -128,6 +136,10 @@ if choice == '音檔':
             response = get_completion(prompt)
             result += response
             start_idx = end_idx
+
+            # update the progress bar
+            progress_value = start_idx / total_length
+            progress_bar.progress(progress_value)
 
         prompt = f"你現在是一個 json 格式達人，\
         請你先閱讀完全部的檔案內容之後，再將格式調整為 csv\
@@ -150,12 +162,16 @@ elif choice == '逐字稿':
         st.sidebar.header("逐字稿內容")
         st.sidebar.text(wrap_text(transcript_all).replace('\n', '  \n'))
         start_idx = 200
-        result = ''
+        result = '' 
         overlap_token = 200 
 
-        while start_idx < len(transcript_all):
+        # create a progress bar
+        progress_bar = st.progress(0)
+
+        total_length = len(transcript_all)
+        while start_idx < total_length:
             start_idx = start_idx - overlap_token
-            end_idx = min(start_idx + 2500, len(transcript_all))
+            end_idx = min(start_idx + 2500, total_length)
             sub_list = transcript_all[start_idx:end_idx]
             prompt = f"你現在是一個會議紀錄專業寫手，\
             你的任務是根據會議逐字稿整理會議紀錄，\
@@ -170,6 +186,10 @@ elif choice == '逐字稿':
             response = get_completion(prompt)
             result += response
             start_idx = end_idx
+
+            # update the progress bar
+            progress_value = start_idx / total_length
+            progress_bar.progress(progress_value)
 
         prompt = f"你現在是一個 json 格式達人，\
         請你先閱讀完全部的檔案內容之後，再將格式調整為 csv\
